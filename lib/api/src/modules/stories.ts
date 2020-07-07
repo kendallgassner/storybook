@@ -9,6 +9,7 @@ import {
   SET_STORIES,
   CURRENT_STORY_WAS_SET,
 } from '@storybook/core-events';
+import deprecate from 'util-deprecate';
 
 import { logger } from '@storybook/client-logger';
 import {
@@ -60,8 +61,33 @@ export interface SubAPI {
     parameterName?: ParameterName
   ) => Story['parameters'] | any;
   getCurrentParameter<S>(parameterName?: ParameterName): S;
-  updateStoryArgs(id: StoryId, newArgs: Args): void;
+  updateStoryArgs(story: Story, newArgs: Args): void;
   findLeafStoryId(StoriesHash: StoriesHash, storyId: StoryId): StoryId;
+}
+
+const deprecatedOptionsParameterWarnings: Record<string, () => void> = [
+  'sidebarAnimations',
+  'enableShortcuts',
+  'theme',
+  'showRoots',
+].reduce((acc, option: string) => {
+  acc[option] = deprecate(
+    () => {},
+    `parameters.options.${option} is deprecated and will be removed in Storybook 7.0.
+To change this setting, use \`addons.setConfig\`. See https://github.com/storybookjs/storybook/MIGRATION.md#deprecated-immutable-options-parameters
+  `
+  );
+  return acc;
+}, {} as Record<string, () => void>);
+function checkDeprecatedOptionParameters(options?: Record<string, any>) {
+  if (!options) {
+    return;
+  }
+  Object.keys(options).forEach((option: string) => {
+    if (deprecatedOptionsParameterWarnings[option]) {
+      deprecatedOptionsParameterWarnings[option]();
+    }
+  });
 }
 
 export const init: ModuleFn = ({
@@ -257,8 +283,15 @@ export const init: ModuleFn = ({
       const childStoryId = storiesHash[storyId].children[0];
       return api.findLeafStoryId(storiesHash, childStoryId);
     },
-    updateStoryArgs: (id, newArgs) => {
-      fullAPI.emit(UPDATE_STORY_ARGS, id, newArgs);
+    updateStoryArgs: (story, updatedArgs) => {
+      const { id: storyId, refId } = story;
+      fullAPI.emit(UPDATE_STORY_ARGS, {
+        storyId,
+        updatedArgs,
+        options: {
+          target: refId ? `storybook-ref-${refId}` : 'storybook-preview-iframe',
+        },
+      });
     },
   };
 
@@ -285,6 +318,7 @@ export const init: ModuleFn = ({
         const options = fullAPI.getCurrentParameter('options');
 
         if (options) {
+          checkDeprecatedOptionParameters(options);
           fullAPI.setOptions(options);
         }
       }
@@ -317,7 +351,9 @@ export const init: ModuleFn = ({
 
           fullAPI.setStories(stories, error);
 
-          fullAPI.setOptions((data as SetStoriesPayloadV2).globalParameters.options);
+          const { options } = (data as SetStoriesPayloadV2).globalParameters;
+          checkDeprecatedOptionParameters(options);
+          fullAPI.setOptions(options);
           break;
         }
 
@@ -368,10 +404,35 @@ export const init: ModuleFn = ({
       }
     });
 
-    fullAPI.on(STORY_ARGS_UPDATED, (id: StoryId, args: Args) => {
-      const { storiesHash } = store.getState();
-      (storiesHash[id] as Story).args = args;
-      store.setState({ storiesHash });
+    fullAPI.on(STORY_ARGS_UPDATED, function handleStoryArgsUpdated({
+      storyId,
+      args,
+    }: {
+      storyId: StoryId;
+      args: Args;
+    }) {
+      // the event originates from an iframe, event.source is the iframe's location origin + pathname
+      const { source }: { source: string } = this;
+      const [sourceType, sourceLocation] = getSourceType(source);
+
+      switch (sourceType) {
+        case 'local': {
+          const { storiesHash } = store.getState();
+          (storiesHash[storyId] as Story).args = args;
+          store.setState({ storiesHash });
+          break;
+        }
+        case 'external': {
+          const { id: refId, stories } = fullAPI.findRef(sourceLocation);
+          (stories[storyId] as Story).args = args;
+          fullAPI.updateRef(refId, { stories });
+          break;
+        }
+        default: {
+          logger.warn('received a STORY_ARGS_UPDATED frame that was not configured as a ref');
+          break;
+        }
+      }
     });
   };
 

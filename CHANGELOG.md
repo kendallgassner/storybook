@@ -1,3 +1,75 @@
+## 6.0.0-beta.44 (July 6, 2020)
+
+### Breaking Changes
+
+- Core: Consistent file paths for locally-defined addons ([#11368](https://github.com/storybookjs/storybook/pull/11368))
+
+### Features
+
+- Composition: Ensure args get sent to the right ref ([#11401](https://github.com/storybookjs/storybook/pull/11401))
+- Core: Deprecate configure and clearDecorators ([#11431](https://github.com/storybookjs/storybook/pull/11431))
+
+### Bug Fixes
+
+- Controls: Fix object control for story switching ([#11432](https://github.com/storybookjs/storybook/pull/11432))
+- Controls: Fix interaction lag & CJK input ([#11430](https://github.com/storybookjs/storybook/pull/11430))
+
+## 6.0.0-beta.43 (July 5, 2020)
+
+### Features
+
+- Composition: Ignore globals from non-local refs ([#11407](https://github.com/storybookjs/storybook/pull/11407))
+
+### Maintenance
+
+- Core: Remove manager redirects on boot ([#11390](https://github.com/storybookjs/storybook/pull/11390))
+
+## 6.0.0-beta.42 (July 5, 2020)
+
+### Bug Fixes
+
+- Addon-docs: Fix Props subcomponents regression ([#11420](https://github.com/storybookjs/storybook/pull/11420))
+
+### Maintenance
+
+- Core: Deprecate `addParameters` and `addDecorator` ([#11417](https://github.com/storybookjs/storybook/pull/11417))
+
+## 6.0.0-beta.41 (July 4, 2020)
+
+### Bug Fixes
+
+- Addon-docs: Fix subcomponents display logic ([#11415](https://github.com/storybookjs/storybook/pull/11415))
+- Addon-docs: Fix Source rendering corner case ([#11414](https://github.com/storybookjs/storybook/pull/11414))
+
+## 6.0.0-beta.40 (July 4, 2020)
+
+### Features
+
+- CLI: Add upgrade utility with version consistency check ([#11396](https://github.com/storybookjs/storybook/pull/11396))
+
+### Maintenance
+
+- Build: Fix CI breaks ([#11410](https://github.com/storybookjs/storybook/pull/11410))
+- Core: Deprecate immutable options as parameters ([#11387](https://github.com/storybookjs/storybook/pull/11387))
+
+## 6.0.0-beta.39 (July 2, 2020)
+
+### Breaking Changes
+
+- CSF: Forbid duplicate kinds ([#11369](https://github.com/storybookjs/storybook/pull/11369))
+- Args: Rename `globalArgs` to `globals` ([#11385](https://github.com/storybookjs/storybook/pull/11385))
+
+### Features
+
+- Args: Disable rows and controls in argTypes ([#11388](https://github.com/storybookjs/storybook/pull/11388))
+- Composition: Add auto disable ([#11364](https://github.com/storybookjs/storybook/pull/11364))
+- CLI: use addon-essentials & args ([#11282](https://github.com/storybookjs/storybook/pull/11282))
+
+### Maintenance
+
+- Build: Add artifacts for e2e CI task ([#11365](https://github.com/storybookjs/storybook/pull/11365))
+- Build: Remove cli fixtures in favor of e2e ([#11357](https://github.com/storybookjs/storybook/pull/11357))
+
 ## 6.0.0-beta.38 (June 30, 2020)
 
 ### Breaking Changes
